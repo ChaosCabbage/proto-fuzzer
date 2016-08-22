@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package ProtoFuzz;
+
+message Empty
+{
+}
+
+message SomeNumbers {
+  int32  a = 1;
+  uint32 b = 2;
+  float  c = 3;
+}
+
+message SomeBytes {
+  bytes data = 1;
+}
+
+message MessageWithNestedEnum { 
+  enum Pelecaniforme {
+    HERON = 0;
+    IBIS = 1;
+    HAMERKOP = 2;
+    SHOEBILL = 3;
+    PELICAN = 4;
+  };
+  Pelecaniforme family = 1;
+  string name = 2;
+  bool tasty = 3;
+}
+
+message NestedMessage {
+  SomeNumbers a = 1;
+  SomeBytes b = 2;
+}
+
+message RepeatedThings {
+  repeated string a = 1;
+  repeated NestedMessage b = 2;
+}
+
+message MessageWithTwoOneOfs {
+  oneof Lunch {
+    string chicken = 1;
+    double quiche = 2;
+    int32 curry = 3;
+  }
+  oneof Drink {
+    double chocolate = 4;
+    fixed32 coffee = 5;
+    bool lemonade = 6;
+  }
+}

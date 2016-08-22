@@ -1,0 +1,26 @@
+{
+  "name": "proto-fuzzer",
+  "version": "0.0.1",
+  "description": "A (dumb) fuzz tester for Protocol Buffer messages and gRPC services.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "fuzz",
+    "test",
+    "grpc",
+    "protobuf",
+    "protocol buffer"
+  ],
+  "author": "Paul Courts",
+  "license": "ISC",
+  "dependencies": {
+    "grpc": "^1.0.0",
+    "sorrow": "^2.0.10"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^3.0.2"
+  }
+}
