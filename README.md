@@ -1,4 +1,4 @@
-#  A  fuzz tester for gRPC and Protocol Buffers
+#  A fuzz tester for gRPC and proto3
 
 Currently, the functionality is in two separate functions:
 
@@ -90,3 +90,21 @@ console.log(JSON.stringify(mutations[10]));
 }
 
 ```
+
+## Mutation strategy
+If you come up with too much random data, you probably won't get very deep into your service.
+The deterministic mutators will do either one or two subtle (or unsubtle) changes to your input. 
+The idea is that you will get past the obvious error checks and penetrate deeper into the code. 
+
+Here's a few articles I read:
+
+https://www.mwrinfosecurity.com/our-thinking/15-minute-guide-to-fuzzing/
+https://lcamtuf.blogspot.co.uk/2014/08/binary-fuzzing-strategies-what-works.html
+
+## Todo
+- Finish the implementation of mutators for all protobuf types 
+- Non-deterministic mutations
+- Make it easier to specify a database of inputs or input mutators
+- Automatically throw messages at a running service for a while, and record the message that breaks it
+
+

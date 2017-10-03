@@ -1,28 +1,43 @@
 function ConstantToFunction(c)
 {
-    return (() => c)
+    return () => c
 }
+
+function Import(path) 
+{
+    const mutatabase = require(path)
+    return [].concat(
+        mutatabase.constants.map(ConstantToFunction),
+        mutatabase.mutators
+    )
+}
+
+function Null()
+{
+    return () => null
+}
+
+const stringMutators = Import("./mutators/string")
+const numberMutators = Import("./mutators/number")
+const boolMutators = Import("./mutators/bool")
+const bytesMutators = Import("./mutators/bytes")
 
 function SingleFieldMutators(field)
 {
     switch (field.type.name) {
         case "message": return MessageMutators(field)
         case "enum": return EnumMutators(field)
-        case "bytes": return BytesMutators()
-        case "bool" : return BoolMutators()
-    }
-    
-    var type = typeof field.type.defaultValue;
-	
-	if (type == 'number') {
-		return NumberMutators();
+        case "bytes": return bytesMutators
+        case "bool" : return boolMutators
+        case "string" : return stringMutators
     }
 
-    if (type == 'string') {
-        return StringMutators();
+	if (typeof field.type.defaultValue == 'number') {
+		return numberMutators;
     }
 
     console.warn("Unknown field type: " + field.type.name)
+    
     return []
 }
 
@@ -42,7 +57,7 @@ function FieldMutators(field)
 	if (field.repeated) {
 		return RepeatedFieldMutators(field);
 	} else {
-		return SingleFieldMutators(field);
+		return SingleFieldMutators(field).concat(Null);
 	}
 }
 
@@ -54,6 +69,10 @@ function DeepClone(object)
 function ToSubMutation(mutation, fieldName)
 {
     return (message => {
+        if (message === null || message === undefined ||
+            message[fieldName] === null || message[fieldName] === undefined) {
+                return null
+        }
         var m = DeepClone(message)
         m[fieldName] = mutation(m[fieldName])
         return m
@@ -62,7 +81,7 @@ function ToSubMutation(mutation, fieldName)
 
 function MessageMutators(protoMessageType)
 {
-    const constants = [{}, null].map(ConstantToFunction)
+    const constants = [{}].map(ConstantToFunction)
     let mutations = []
 
     for (var name in protoMessageType._fieldsByName) {
@@ -82,49 +101,6 @@ function MessageMutators(protoMessageType)
     return [].concat(constants, mutations) 
 }
 
-function NumberMutators()
-{
-    const constants = [0, -1, 1, 2, 10000000, -10000000].map(ConstantToFunction)
-    const mutators = [
-        x => x+1,
-        x => x-1,
-        x => x+35,
-        x => x-35,
-        x => -x
-    ]
-    // That's Numberwang!
-    return [].concat(constants, mutators)
-}
-
-function StringMutators()
-{
-    // There are better databases for this sort of thing;
-    // this is just to get started.
-    const constants = [
-        "", 
-        "$HOME", 
-        "\n\n\n\r\n", 
-        "%s%d", 
-        "null", 
-        "' OR 1=1/*", 
-        "bob".repeat(10000)
-    ].map(ConstantToFunction)
-
-    const mutators = [
-        s => s.repeat(1000),
-        s => s + "\n",
-        s => s.toUpperCase(),
-        s => "!" + s
-    ]
-
-    return [].concat(constants, mutators)
-}
-
-function BytesMutators() 
-{
-    console.warn("bytes: not implemented")
-    return []
-}
 
 function EnumMutators(field)
 {
@@ -135,11 +111,6 @@ function EnumMutators(field)
     // If size is 4, this produces an array like [0,1,2,3]
     const options = [...Array(size).keys()]
     return options.map(ConstantToFunction)
-}
-
-function BoolMutators()
-{
-    return [true, false].map(ConstantToFunction)
 }
 
 module.exports = function(protoMessageSpec) 
