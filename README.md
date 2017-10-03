@@ -102,7 +102,8 @@ https://www.mwrinfosecurity.com/our-thinking/15-minute-guide-to-fuzzing/
 https://lcamtuf.blogspot.co.uk/2014/08/binary-fuzzing-strategies-what-works.html
 
 ## Todo
-- Finish the implementation of mutators for all protobuf types 
+- Finish the implementation of mutators for all protobuf types
+  - Different number types, in particular
 - Non-deterministic mutations
 - Make it easier to specify a database of inputs or input mutators
 - Automatically throw messages at a running service for a while, and record the message that breaks it
