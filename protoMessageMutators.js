@@ -16,6 +16,7 @@ const stringMutators = Import("./mutators/string")
 const numberMutators = Import("./mutators/number")
 const boolMutators = Import("./mutators/bool")
 const bytesMutators = Import("./mutators/bytes")
+const wholeArrayMutators = Import("./mutators/array")
 
 function SingleFieldMutators(field)
 {
@@ -38,13 +39,11 @@ function SingleFieldMutators(field)
 
 function RepeatedFieldMutators(field)
 {
-    console.warn("Repeated fields aren't handled very intelligently yet")
+    const componentMutators = SingleFieldMutators(field).map(mutator => (
+        arr => arr.map(mutator)
+    ))
 
-    const constants = [
-        []
-    ].map(ConstantToFunction)
-
-    return constants 
+    return [].concat(componentMutators, wholeArrayMutators)
 }
 
 function FieldMutators(field) 
@@ -61,17 +60,20 @@ function DeepClone(object)
     return JSON.parse(JSON.stringify(object))
 }
 
+function MutateField(message, mutation, fieldName)
+{
+    if (message === null || message === undefined ||
+        message[fieldName] === null || message[fieldName] === undefined) {
+            return null
+    }
+    var m = DeepClone(message)
+    m[fieldName] = mutation(m[fieldName])
+    return m
+}
+
 function ToSubMutation(mutation, fieldName)
 {
-    return (message => {
-        if (message === null || message === undefined ||
-            message[fieldName] === null || message[fieldName] === undefined) {
-                return null
-        }
-        var m = DeepClone(message)
-        m[fieldName] = mutation(m[fieldName])
-        return m
-    })
+    return (message => MutateField(message, mutation, fieldName))
 }
 
 function DeleteFieldMutation(fieldName)
