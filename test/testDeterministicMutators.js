@@ -5,35 +5,44 @@ var Mutate = require("../mutateProtoMessage")
 
 var protos = grpc.load(__dirname + "/data/fuzzables.proto")
 
-describe('mutateProtoMessage', function() {
-	it('should handle an empty message', function() {
+function validateAll(messages, protoSpec)
+{
+	messages.forEach(m => new protoSpec(m))
+}
+
+describe('mutateProtoMessage', function () {
+	it('should handle an empty message', function () {
 		var mess = Mutate(protos.ProtoFuzz.Empty, {})
 		expect(mess).to.eql([{}])
 	})
-  
-  it('should handle numbers', function() {
-		var numberMutations = Mutate(protos.ProtoFuzz.SomeNumbers, { a: -1, b: 1, c: 1.1 }) 
-  })
-  
-  it('should handle enums', function() {
+
+	it('should handle numbers', function () {
+		var numberMutations = Mutate(protos.ProtoFuzz.SomeNumbers, { a: -1, b: 1, c: 1.1 })
+		validateAll(numberMutations, protos.ProtoFuzz.SomeNumbers)
+	})
+
+	it('should handle enums', function () {
 		var messages = Mutate(protos.ProtoFuzz.MessageWithNestedEnum, {
 			family: 2, name: "julia", tasty: true
 		})
-  })
-  
-  it('should handle nested messages', function() {
+		validateAll(messages, protos.ProtoFuzz.MessageWithNestedEnum)
+	})
+
+	it('should handle nested messages', function () {
 		var messages = Mutate(protos.ProtoFuzz.NestedMessage, {
 			a: { a: -1, b: 1, c: 1.1 }, b: {}
-		}) 
-  })
-  
-  it('should handle repeated fields', function() {
+		})
+		validateAll(messages, protos.ProtoFuzz.NestedMessage)
+	})
+
+	it('should handle repeated fields', function () {
 		var mess = Mutate(protos.ProtoFuzz.RepeatedThings, {
 			a: ["mob", "fob", "yob"],
-			b: [ {a: { a: -1, b: 1, c: 1.1 }, b: {} }]
-		}) 		
-  })
-  
+			b: [{ a: { a: -1, b: 1, c: 1.1 }, b: {} }]
+		})
+		validateAll(mess, protos.ProtoFuzz.RepeatedThings)
+	})
+
 })
 
 

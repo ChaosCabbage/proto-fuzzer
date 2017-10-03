@@ -12,11 +12,6 @@ function Import(path)
     )
 }
 
-function Null()
-{
-    return () => null
-}
-
 const stringMutators = Import("./mutators/string")
 const numberMutators = Import("./mutators/number")
 const boolMutators = Import("./mutators/bool")
@@ -57,7 +52,7 @@ function FieldMutators(field)
 	if (field.repeated) {
 		return RepeatedFieldMutators(field);
 	} else {
-		return SingleFieldMutators(field).concat(Null);
+		return SingleFieldMutators(field);
 	}
 }
 
@@ -79,9 +74,21 @@ function ToSubMutation(mutation, fieldName)
     })
 }
 
+function DeleteFieldMutation(fieldName)
+{
+    return (message => {
+        var m = DeepClone(message)
+        delete m[fieldName]
+        return m
+    })
+} 
+
 function MessageMutators(protoMessageType)
 {
-    const constants = [{}].map(ConstantToFunction)
+    const constants = [
+        {}
+    ].map(ConstantToFunction)
+    
     let mutations = []
 
     for (var name in protoMessageType._fieldsByName) {
@@ -95,6 +102,9 @@ function MessageMutators(protoMessageType)
         const subMutations = FieldMutators(field)
         mutations = mutations.concat(
             subMutations.map(mut => ToSubMutation(mut, name))
+        )
+        mutations.push(
+            DeleteFieldMutation(name)
         )
     }
 
