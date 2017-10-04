@@ -1,13 +1,13 @@
 #  A fuzz tester for gRPC and proto3
 
-Currently, the functionality is in two separate functions:
+Currently, the functionality is spread around a little:
 
-- Purely random messages
-  - Exported as a function from _randomProtoMessage.js_
-- Deterministic mutations of an existing message
-  - Exported as a function from _mutateProtoMessage.js_
+- _randomProtoMessage.js_: A function to produce purely random messages
+- _mutateProtoMessage.js_: Deterministic mutations of an existing message
 
 Either should produce a valid object within your protobuf message definition.
+
+- _runner.js_: Sends all the deterministic mutations at a running gRPC service until it crashes
 
 ## Examples
 
@@ -16,44 +16,29 @@ Either should produce a valid object within your protobuf message definition.
 syntax = "proto3";
 
 message SomeMessageType {
-  message SubMessage {
-	bool x = 1;
-  }
-
-  uint32          alice   = 1;
-  repeated string bob     = 2;
-  SubMessage      charlie = 3;  
-}
-```
-
-*randomMessageExample.js*
-```js
-var randomProtoMessage = require("./randomProtoMessage"); 
-var grpc = require("grpc");
-
-var myProtos = grpc.load("myProtoFile.proto");
-
-var randomMessage = randomProtoMessage(myProtos.SomeMessageType);
-console.log(JSON.stringify(randomMessage));
-```
-
-*output*
-```js
-{
-	alice: 2345612,
-	bob: ["sunday", "%%£%^%%^&%$&", "\n\n\n\n\n\n\n\n\n"],
-	charlie: {
-		x: false
+	message SubMessage {
+		bool x = 1;
 	}
+
+	uint32          alice   = 1;
+	repeated string bob     = 2;
+	SubMessage      charlie = 3;  
+}
+
+service Somethingness {
+	rpc DoSomething (SomeMessageType) returns (SomeMessageType);
 }
 ```
 
-*mutatedMessageExample.js*
+Example usage:
 ```js
-var mutateProtoMessage = require("./randomProtoMessage"); 
-var grpc = require("grpc");
+const grpc = require("grpc")
+const protos = grpc.load("myProtoFile.proto");
+const run = require("./runner")
 
-var myProtos = grpc.load("myProtoFile.proto");
+const grpcClient = new protos.Somethingness("localhost:50001", grpc.credentials.createInsecure())
+
+const RequestType = protos.SomeMessageType
 
 var initialMessage = {
 	alice: 3,
@@ -63,32 +48,12 @@ var initialMessage = {
 	}
 }
 
-var mutations = mutateProtoMessage(myProtos.SomeMessageType, initialMessage);
-console.log(JSON.stringify(mutations[0]));
-console.log(JSON.stringify(mutations[2]));
-console.log(JSON.stringify(mutations[10]));
-```
-   
-*output*
-```js
-{}
-
-{
-	alice: -1,
-	bob: ["john", "paul"],
-	charlie: {
-		x: true	
-	}
-}
-
-{
-	alice: 3,
-	bob: ["john\n\n\n", "paul"],
-	charlie: {
-		x: true	
-	}
-}
-
+run(
+    RequestType,
+    grpcClient,
+    "doSomething",
+    initialMessage
+)
 ```
 
 ## Mutation strategy
@@ -106,6 +71,3 @@ https://lcamtuf.blogspot.co.uk/2014/08/binary-fuzzing-strategies-what-works.html
   - Different number types, in particular
 - Non-deterministic mutations
 - Make it easier to specify a database of inputs or input mutators
-- Automatically throw messages at a running service for a while, and record the message that breaks it
-
-
