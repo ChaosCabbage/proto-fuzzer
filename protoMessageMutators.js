@@ -22,7 +22,7 @@ const wholeArrayMutators = Import("./mutators/array")
 function SingleFieldMutators(field)
 {
     switch (field.type.name) {
-        case "message": return MessageMutators(field)
+        case "message": return MessageMutators(field.resolvedType)
         case "enum": return EnumMutators(field)
         case "bytes": return bytesMutators
         case "bool" : return boolMutators
@@ -42,7 +42,8 @@ function SingleFieldMutators(field)
 
 function RepeatedFieldMutators(field)
 {
-    const componentMutators = SingleFieldMutators(field).map(mutator => (
+    const singleMutators = SingleFieldMutators(field)
+    const componentMutators = singleMutators.map(mutator => (
         arr => arr.map(mutator)
     ))
 
