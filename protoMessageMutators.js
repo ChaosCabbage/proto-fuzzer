@@ -13,7 +13,8 @@ function Import(path)
 }
 
 const stringMutators = Import("./mutators/string")
-const numberMutators = Import("./mutators/number")
+const intMutators = Import("./mutators/int")
+const floatMutators = Import("./mutators/float")
 const boolMutators = Import("./mutators/bool")
 const bytesMutators = Import("./mutators/bytes")
 const wholeArrayMutators = Import("./mutators/array")
@@ -26,10 +27,12 @@ function SingleFieldMutators(field)
         case "bytes": return bytesMutators
         case "bool" : return boolMutators
         case "string" : return stringMutators
+        case "double": return floatMutators
+        case "float" : return floatMutators
     }
 
 	if (typeof field.type.defaultValue == 'number') {
-		return numberMutators;
+		return intMutators;
     }
 
     console.warn("Unknown field type: " + field.type.name)
