@@ -79,6 +79,7 @@ function ToSubMutation(mutation, fieldName)
 function DeleteFieldMutation(fieldName)
 {
     return (message => {
+        if (message === null || message === undefined) return null
         var m = DeepClone(message)
         delete m[fieldName]
         return m
